@@ -1,0 +1,121 @@
+html,
+body,
+#app {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #9fc4de;
+}
+
+#app {
+  position: relative;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+canvas {
+  display: block;
+}
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+.hud-speed {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.hud-speed-value {
+  font-size: 60px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 110px;
+  text-align: right;
+}
+
+.hud-speed-unit {
+  font-size: 20px;
+  opacity: 0.85;
+}
+
+.hud-controls {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 13px;
+  line-height: 1.7;
+  text-shadow: none;
+}
+
+.hud-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+  opacity: 0.9;
+}
+
+.hud-controls kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #222;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-shadow: none;
+}
+
+.hud-offroad,
+.hud-message {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  text-shadow: none;
+}
+
+.hud-offroad {
+  top: 24px;
+}
+
+.hud-message {
+  top: 72px;
+}
+
+.hud-offroad.visible,
+.hud-message.visible {
+  opacity: 1;
+}
+
+.hud-offroad kbd {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #222;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}

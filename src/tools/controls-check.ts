@@ -1,0 +1,14 @@
+import { createControls } from '../car/controls';
+const h: Record<string, ((e: any) => void)[]> = {};
+const fake: any = { addEventListener: (t: string, f: any) => (h[t] ??= []).push(f), removeEventListener() {} };
+const c = createControls(fake);
+const press = (code: string, extra: any = {}) => h['keydown'].forEach(f => f({ code, repeat: false, ctrlKey: false, metaKey: false, altKey: false, preventDefault() {}, ...extra }));
+const out: string[] = []; const check = (name: string, got: boolean, want: boolean) => out.push(`${got === want ? 'PASS' : 'FAIL'}  ${name}`);
+press('KeyC'); check('C sets the camera toggle', c.consumeCameraToggle(), true);
+check('C does NOT count as "any other key" (autodrive stays on)', c.consumeAnyKey(), false);
+check('camera toggle is consumed once', c.consumeCameraToggle(), false);
+press('KeyC', { repeat: true }); check('holding C does not toggle again', c.consumeCameraToggle(), false);
+press('KeyE'); check('E still toggles autodrive', c.consumeAutoToggle(), true); check('E is not "any other key"', c.consumeAnyKey(), false);
+press('KeyW'); check('W still hands control back', c.consumeAnyKey(), true);
+press('KeyV'); check('V (debug overlay) still does not cancel autodrive', c.consumeAnyKey(), false);
+console.log(out.join('\n')); process.exit(out.some(r => r.startsWith('FAIL')) ? 1 : 0);
