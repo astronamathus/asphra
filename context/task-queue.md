@@ -191,3 +191,7 @@ Implementation is finished.
 Relevant testing has been performed.
 Changes are documented.
 Outstanding issues are recorded.
+
+TASK-012: Racing-line rubber deposits
+Status: Implemented — awaiting build and in-game visual verification
+Uses the fitted Monza racing line to place two subtle tyre-width rubber ribbons. Both tracks are checked against road boundaries. Next: verify visibility and subtlety in-game; tune opacity/width if needed.
