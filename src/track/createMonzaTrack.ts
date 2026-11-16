@@ -1,10 +1,11 @@
 import type { RoadTrack } from '../types';
 // Vite's "?raw" suffix bundles the file's text into the app, so there is no runtime fetch and a
 // missing file stops the build/dev server with a clear "failed to resolve import" error.
-import monzaCsv from '../tracks/monza.csv?raw';
+import monzaCsv from '../tracks/Monza.csv?raw';
 import { parseAndValidateTrackCsv } from './trackCsv';
 import { parseTracedWidths } from './tracedWidths';
 import { createTrackFromCsv } from './trackLoader';
+import { createMonzaKerbs } from './monzaKerbs';
 
 // Optional: widths measured from road edges traced on satellite imagery (made by tools/kml-to-widths.ts).
 // import.meta.glob gives an empty object when the file does not exist, and the CSV's own widths are used.
@@ -21,5 +22,7 @@ export function createMonzaTrack(): RoadTrack {
     widthsText === undefined
       ? null
       : parseTracedWidths(widthsText, 'src/tracks/monza-widths.csv', parseAndValidateTrackCsv(monzaCsv, 'src/tracks/monza.csv').samples.length);
-  return createTrackFromCsv(monzaCsv, 'src/tracks/monza.csv', 'Monza', traced);
+  const track = createTrackFromCsv(monzaCsv, 'src/tracks/Monza.csv', 'Monza', traced);
+  track.object.add(createMonzaKerbs(track));
+  return track;
 }
