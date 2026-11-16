@@ -138,7 +138,23 @@ Investigate multiplayer feasibility.
 
 4. Active Tasks
 
-No assignments recorded yet.
+TASK-011: Procedural asphalt surface
+
+Status: Implemented — awaiting build and browser verification
+
+Added a seamless procedural aggregate texture to the Monza road material. The existing 10 m UV repeat scale is retained. Next validation: run the TypeScript/Vite build and inspect texture scale, contrast and repetition in-game.
+
+5. Completed Tasks
+
+Record verified completed tasks here.
+
+Current confirmed foundation:
+
+Initial Monza CSV implementation.
+Basic road and terrain rendering.
+Formula-style vehicle.
+Player driving controls.
+Optional autodrive.
 
 5. Completed Tasks
 
