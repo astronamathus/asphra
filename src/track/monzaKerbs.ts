@@ -889,15 +889,18 @@ function createRunMesh(track: RoadTrack, run: KerbRun, index: number): THREE.Mes
     const sideWidth = run.side > 0 ? road.widthLeft : road.widthRight;
     // Match the outside edge of the white line exactly: no strip of grass between line and kerb.
     const lineOuterOffset = sideWidth - CIRCUIT.edgeLineInset + CIRCUIT.edgeLineWidth / 2;
+    // Keep the kerb completely planar, level with the painted edge line.
+    // A 2 mm lift avoids z-fighting without creating a visible ramp or raised outer lip.
+    const kerbY = CIRCUIT.roadY + 0.022;
     const inner = {
       x: road.x + normalX * lineOuterOffset,
       z: road.z + normalZ * lineOuterOffset,
-      y: CIRCUIT.roadY + 0.025,
+      y: kerbY,
     };
     const outer = {
       x: inner.x + normalX * KERB_WIDTH,
       z: inner.z + normalZ * KERB_WIDTH,
-      y: CIRCUIT.roadY + 0.075,
+      y: kerbY,
     };
     return [inner, outer] as const;
   };
