@@ -15,7 +15,6 @@ import { loadMonzaRaceline } from './track/loadRaceline';
 import { loadMonzaReferenceLap } from './track/loadREferenceLap';
 import type { RacelineResult } from './track/loadRaceline';
 import { fitRacelineToRoad } from './track/racelineFit';
-import { createRubberDeposits } from './track/rubberDeposits';
 import { createHud } from './ui/hud';
 import { showFatalError } from './ui/fatalError';
 import { createDebugView } from './debug/debugView'; // TEMPORARY
@@ -67,9 +66,6 @@ export function startGame(container: HTMLElement): () => void {
       raceline: { points: fit.points, rows: racelineFile.raceline.rows },
       message: `${racelineFile.message}; ${fit.moved} points moved up to ${fit.maxShift.toFixed(2)} m off the road edges`,
     };
-  }
-  if (racelineResult.raceline) {
-    track.object.add(createRubberDeposits(racelineResult.raceline.points, track));
   }
   const referenceResult = loadMonzaReferenceLap();
   let autopilot: Autopilot | null = null;
