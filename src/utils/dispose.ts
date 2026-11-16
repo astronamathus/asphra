@@ -9,10 +9,16 @@ export function disposeObject(root: THREE.Object3D): void {
     mesh.geometry.dispose();
 
     const material = mesh.material;
+    const disposeMaterial = (m: THREE.Material) => {
+      // Materials do not dispose their maps; release the procedural road texture explicitly.
+      const mapped = m as THREE.Material & { map?: THREE.Texture | null };
+      mapped.map?.dispose();
+      m.dispose();
+    };
     if (Array.isArray(material)) {
-      material.forEach((m) => m.dispose());
+      material.forEach(disposeMaterial);
     } else {
-      material.dispose();
+      disposeMaterial(material);
     }
 
     const instanced = obj as THREE.InstancedMesh;
