@@ -110,3 +110,34 @@ The current handoff should always describe the latest relevant development state
 Never assume that a previous session successfully completed a task just because it reported completion.
 
 Verify the code and tests.
+Handoff — 2026-11-15
+
+Task ID: TASK-011
+Previous AI: ChatGPT
+Git branch: main
+Task status: Implemented; awaiting build and in-game verification
+
+Work Completed
+Added a seamless procedural asphalt aggregate texture and connected it to the existing Monza road material. The existing road geometry, UV convention and 10 m repeat scale are unchanged.
+
+Files Modified
+- src/track/asphaltTexture.ts (created)
+- src/track/roadMesh.ts
+- src/utils/dispose.ts
+- context/changelog.md
+- context/task-queue.md
+- context/ai-handoff.md
+
+Technical Discoveries
+- Road UV V coordinates are generated from centerline distance divided by CIRCUIT.uvMetersPerRepeat.
+- The current default texture repeat length is 10 m.
+- Material disposal did not previously dispose texture maps; road texture map disposal was added.
+
+Outstanding Work
+1. Run npm run build.
+2. Inspect the asphalt in browser at driving and close-up distances.
+3. Tune aggregate contrast and apparent scale if needed.
+4. Consider adding racing-line rubbering only after the base material is visually approved.
+
+Testing
+No local build or browser test executed in this session.
