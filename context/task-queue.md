@@ -140,9 +140,9 @@ Investigate multiplayer feasibility.
 
 TASK-011: Procedural asphalt surface
 
-Status: Implemented — awaiting build and browser verification
+Status: Refined — awaiting build and browser verification
 
-Added a seamless procedural aggregate texture to the Monza road material. The existing 10 m UV repeat scale is retained. Next validation: run the TypeScript/Vite build and inspect texture scale, contrast and repetition in-game.
+The procedural aggregate texture now has a wider tonal range, stronger fine/medium grain, sparse irregular aggregate flecks and subtle broad-scale variation. The existing 10 m UV repeat scale is retained. Racing-line rubber deposits were removed after visual feedback. Next validation: check the aggregate visibility at chase-camera distance and close range, then tune contrast/scale.
 
 5. Completed Tasks
 
