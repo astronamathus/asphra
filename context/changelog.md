@@ -110,3 +110,20 @@ Files
 
 Testing
 - Source integration checked; build and visual validation remain outstanding.
+
+[2026-11-15] — TASK-011 refinement — Asphalt aggregate contrast
+
+Removed the experimental racing-line rubber deposits after visual feedback found them artificial.
+Increased the procedural asphalt texture's tonal range and aggregate contrast:
+- Stronger fine and medium periodic noise.
+- Irregular darker aggregate particles and occasional lighter grains.
+- Subtle broad-scale variation to break up the flat grey appearance.
+- Retained seamless periodic generation, existing 10 m UV scale and matte road material.
+
+Files
+- src/track/asphaltTexture.ts
+- src/main.ts
+- src/track/rubberDeposits.ts (deleted)
+
+Testing
+Source integration verified from GitHub. Build and in-browser visual inspection not performed.
