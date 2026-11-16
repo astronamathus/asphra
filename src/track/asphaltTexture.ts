@@ -41,18 +41,23 @@ export function createAsphaltTexture(): THREE.DataTexture {
 
   for (let y = 0; y < SIZE; y++) {
     for (let x = 0; x < SIZE; x++) {
-      const fine = valueNoise(x, y, 128);
-      const medium = valueNoise(x, y, 32);
-      const broad = valueNoise(x, y, 8);
+      // Broad, low-frequency variation gives the surface a gently mottled asphalt character.
+      const broad = valueNoise(x, y, 6);
+      const medium = valueNoise(x, y, 28);
+      const fine = valueNoise(x, y, 112);
       const grain = hash(x, y, SIZE) * 2 - 1;
 
-      // Near-white greys multiply the existing asphalt base colour, preserving its palette.
-      // Multiple low-amplitude scales suggest aggregate without making the surface blotchy.
-      let value = 246 + fine * 3.2 + medium * 2.1 + broad * 1.2 + grain * 2.0;
+      // Darker aggregate particles are irregular and sparse, not a regular speckle grid.
+      const particle = hash(x + 91, y + 173, SIZE);
+      const particleTone = particle > 0.976
+        ? 12 + hash(x + 19, y + 37, SIZE) * 22
+        : 0;
+      const lighterGrain = hash(x + 311, y + 47, SIZE) > 0.991 ? 5 : 0;
 
-      // Sparse, very small aggregate flecks add detail at close range.
-      const fleck = hash(x + 91, y + 173, SIZE);
-      if (fleck > 0.992) value -= 8 + hash(x + 19, y + 37, SIZE) * 5;
+      // A wider tonal range lets the texture read at normal driving-camera distances.
+      let value = 239 + broad * 3.0 + medium * 5.0 + fine * 8.0 + grain * 5.0;
+      value -= particleTone;
+      value += lighterGrain;
 
       const pixel = (y * SIZE + x) * 4;
       const channel = THREE.MathUtils.clamp(Math.round(value), 0, 255);
