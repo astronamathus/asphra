@@ -141,3 +141,10 @@ Outstanding Work
 
 Testing
 No local build or browser test executed in this session.
+
+
+Handoff — 2026-11-15
+Task: TASK-012 — Racing-line rubber deposits
+Status: Implemented on main; awaiting build and visual check.
+
+Added src/track/rubberDeposits.ts and integrated it in src/main.ts after raceline fitting. Two subtle tyre-width ribbons follow the fitted racing line and are checked against actual road boundaries. Build and browser validation have not been run.
