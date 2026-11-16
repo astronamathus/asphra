@@ -761,42 +761,196 @@ const MONZA_KERB_SEGMENTS: Segments = [
   ]
 ];
 
-const KERB_WIDTH = 0.75, BASE_Y = 0.035, OUTER_Y = 0.12, STRIPE_LENGTH = 1;
+import { CIRCUIT } from '../config';
+import { pointAtDistance } from './trackGeometry';
+
+const KERB_WIDTH = 0.75;
+const STRIPE_LENGTH = 1;
+const EDGE_MATCH_TOLERANCE = 6;
+const MAX_TRACE_STEP = 15;
 const COLORS = [0xd71920, 0xf5f5f0, 0x159447];
 
-function sample(points: Point[], cumulative: number[], distance: number): Point {
-  const d = THREE.MathUtils.clamp(distance, 0, cumulative[cumulative.length - 1]);
-  let lo = 0, hi = points.length - 2;
-  while (lo < hi) { const mid = (lo + hi) >> 1; if (cumulative[mid + 1] < d) lo = mid + 1; else hi = mid; }
-  const span = cumulative[lo + 1] - cumulative[lo], t = span > 1e-8 ? THREE.MathUtils.clamp((d - cumulative[lo]) / span, 0, 1) : 0;
-  return { x: THREE.MathUtils.lerp(points[lo].x, points[lo + 1].x, t), z: THREE.MathUtils.lerp(points[lo].z, points[lo + 1].z, t) };
+interface TracePoint {
+  s: number;
+  side: -1 | 1;
+  edgeError: number;
 }
 
-function makeSegment(points: Point[], track: RoadTrack, index: number): THREE.Mesh | null {
-  if (points.length < 2) return null;
-  const cumulative = new Float64Array(points.length);
-  for (let i = 1; i < points.length; i++) cumulative[i] = cumulative[i - 1] + Math.hypot(points[i].x - points[i - 1].x, points[i].z - points[i - 1].z);
-  const length = cumulative[cumulative.length - 1]; if (length < 0.5) return null;
-  const offsets = points.map(p => track.nearest(p.x, p.z).lateralOffset).filter(v => Math.abs(v) > 0.25).sort((a,b)=>a-b);
-  if (!offsets.length) return null;
-  const side = Math.sign(offsets[Math.floor(offsets.length / 2)]) || 1, stripeCount = Math.ceil(length / STRIPE_LENGTH);
-  const positions = new Float32Array(stripeCount * 12), colors = new Float32Array(stripeCount * 12), indices = new Uint32Array(stripeCount * 6), color = new THREE.Color();
-  for (let stripe = 0; stripe < stripeCount; stripe++) {
-    const d0 = Math.min(length, stripe * STRIPE_LENGTH), d1 = Math.min(length, (stripe + 1) * STRIPE_LENGTH); if (d1 - d0 < 0.05) continue;
-    const edge = (d: number) => { const p = sample(points, cumulative, d), n = track.nearest(p.x, p.z), nx = Math.cos(n.heading) * side, nz = -Math.sin(n.heading) * side; return [{x:p.x,z:p.z,y:BASE_Y},{x:p.x+nx*KERB_WIDTH,z:p.z+nz*KERB_WIDTH,y:OUTER_Y}]; };
-    const [a,b] = edge(d0), [c,d] = edge(d1), v = stripe * 4;
-    positions.set([a.x,a.y,a.z,b.x,b.y,b.z,c.x,c.y,c.z,d.x,d.y,d.z],v*3);
-    color.setHex(COLORS[stripe % COLORS.length]); for(let j=0;j<4;j++) color.toArray(colors,(v+j)*3);
-    const o=stripe*6; if(side>0) indices.set([v,v+2,v+1,v+1,v+2,v+3],o); else indices.set([v,v+1,v+2,v+1,v+3,v+2],o);
+interface KerbRun {
+  start: number;
+  end: number;
+  side: -1 | 1;
+}
+
+/**
+ * The KML is only a placement hint. Its points are projected onto the actual road centerline;
+ * the rendered inner edge is then calculated from the road width and white-line position.
+ * This prevents KML offsets or stray cross-track lines from creating kerbs on the asphalt.
+ */
+function projectTrace(points: Point[], track: RoadTrack): TracePoint[] {
+  return points.map((point) => {
+    const nearest = track.nearest(point.x, point.z);
+    const side: -1 | 1 = nearest.lateralOffset >= 0 ? 1 : -1;
+    const roadHalfWidth = side > 0 ? nearest.widthLeft : nearest.widthRight;
+    return {
+      s: nearest.s,
+      side,
+      edgeError: Math.abs(Math.abs(nearest.lateralOffset) - roadHalfWidth),
+    };
+  });
+}
+
+/** Convert each plotted polyline into valid, forward-running sections along the circuit. */
+function findKerbRuns(track: RoadTrack): KerbRun[] {
+  const runs: KerbRun[] = [];
+
+  for (const sourceSegment of MONZA_KERB_SEGMENTS) {
+    if (sourceSegment.length < 2) continue;
+    let projected = projectTrace(sourceSegment, track);
+
+    // KML line direction is not guaranteed to match the circuit direction. Find the dominant
+    // direction using shortest wrapped distance, then reverse the trace if needed.
+    let directionScore = 0;
+    for (let i = 1; i < projected.length; i++) {
+      let delta = projected[i].s - projected[i - 1].s;
+      if (delta > track.lapLength / 2) delta -= track.lapLength;
+      if (delta < -track.lapLength / 2) delta += track.lapLength;
+      directionScore += delta;
+    }
+    if (directionScore < 0) projected = projected.reverse();
+
+    let runStart = -1;
+    let runEnd = -1;
+    let runSide: -1 | 1 | null = null;
+    let previousS = 0;
+
+    const flush = () => {
+      if (runStart >= 0 && runEnd - runStart >= 0.5 && runSide !== null) {
+        runs.push({ start: runStart, end: runEnd, side: runSide });
+      }
+      runStart = -1;
+      runEnd = -1;
+      runSide = null;
+    };
+
+    for (let i = 0; i < projected.length; i++) {
+      const point = projected[i];
+      let s = point.s;
+      if (i > 0) {
+        while (s < previousS - track.lapLength / 2) s += track.lapLength;
+        while (s > previousS + track.lapLength / 2) s -= track.lapLength;
+      }
+
+      const validEdgePoint = point.edgeError <= EDGE_MATCH_TOLERANCE;
+      if (i === 0 || !validEdgePoint) {
+        if (!validEdgePoint) flush();
+        previousS = s;
+        if (!validEdgePoint) continue;
+      }
+
+      if (runStart < 0) {
+        runStart = s;
+        runEnd = s;
+        runSide = point.side;
+      } else {
+        const step = s - previousS;
+        if (point.side !== runSide || step <= 0.05 || step > MAX_TRACE_STEP) {
+          flush();
+          runStart = s;
+          runEnd = s;
+          runSide = point.side;
+        } else {
+          runEnd = s;
+        }
+      }
+      previousS = s;
+    }
+    flush();
   }
-  const geometry = new THREE.BufferGeometry(); geometry.setAttribute('position',new THREE.BufferAttribute(positions,3)); geometry.setAttribute('color',new THREE.BufferAttribute(colors,3)); geometry.setIndex(new THREE.BufferAttribute(indices,1)); geometry.computeVertexNormals();
-  const mesh = new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.9,metalness:0,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3,side:THREE.DoubleSide}));
-  mesh.name = `Monza kerb segment ${index}`; mesh.receiveShadow = true; mesh.castShadow = true; return mesh;
+
+  // Merge tiny overlaps/gaps caused by projection noise, but never join separate KML traces.
+  return runs.filter((run) => run.end - run.start >= 1);
 }
 
-/** Builds the red-white-green kerbs from the plotted inner, track-facing KML edge. */
+function createRunMesh(track: RoadTrack, run: KerbRun, index: number): THREE.Mesh | null {
+  const length = run.end - run.start;
+  if (length < 1) return null;
+  const stripeCount = Math.ceil(length / STRIPE_LENGTH);
+  const positions = new Float32Array(stripeCount * 12);
+  const colors = new Float32Array(stripeCount * 12);
+  const indices = new Uint32Array(stripeCount * 6);
+  const color = new THREE.Color();
+
+  const crossSection = (distance: number) => {
+    const center = pointAtDistance(track.debug.centerline, distance);
+    const road = track.nearest(center.x, center.z);
+    const normalX = Math.cos(road.heading) * run.side;
+    const normalZ = -Math.sin(road.heading) * run.side;
+    const sideWidth = run.side > 0 ? road.widthLeft : road.widthRight;
+    // Match the outside edge of the white line exactly: no strip of grass between line and kerb.
+    const lineOuterOffset = sideWidth - CIRCUIT.edgeLineInset + CIRCUIT.edgeLineWidth / 2;
+    const inner = {
+      x: road.x + normalX * lineOuterOffset,
+      z: road.z + normalZ * lineOuterOffset,
+      y: CIRCUIT.roadY + 0.025,
+    };
+    const outer = {
+      x: inner.x + normalX * KERB_WIDTH,
+      z: inner.z + normalZ * KERB_WIDTH,
+      y: CIRCUIT.roadY + 0.075,
+    };
+    return [inner, outer] as const;
+  };
+
+  for (let stripe = 0; stripe < stripeCount; stripe++) {
+    const s0 = run.start + stripe * STRIPE_LENGTH;
+    const s1 = Math.min(run.end, s0 + STRIPE_LENGTH);
+    if (s1 - s0 < 0.05) continue;
+    const [a, b] = crossSection(s0);
+    const [c, d] = crossSection(s1);
+    const vertex = stripe * 4;
+    positions.set(
+      [a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, d.x, d.y, d.z],
+      vertex * 3,
+    );
+    color.setHex(COLORS[stripe % COLORS.length]);
+    for (let corner = 0; corner < 4; corner++) color.toArray(colors, (vertex + corner) * 3);
+    const offset = stripe * 6;
+    if (run.side > 0) indices.set([vertex, vertex + 2, vertex + 1, vertex + 1, vertex + 2, vertex + 3], offset);
+    else indices.set([vertex, vertex + 1, vertex + 2, vertex + 1, vertex + 3, vertex + 2], offset);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+  geometry.computeVertexNormals();
+
+  const mesh = new THREE.Mesh(
+    geometry,
+    new THREE.MeshStandardMaterial({
+      vertexColors: true,
+      roughness: 0.9,
+      metalness: 0,
+      polygonOffset: true,
+      polygonOffsetFactor: -3,
+      polygonOffsetUnits: -3,
+      side: THREE.DoubleSide,
+    }),
+  );
+  mesh.name = `Monza kerb section ${index}`;
+  mesh.receiveShadow = true;
+  mesh.castShadow = true;
+  return mesh;
+}
+
+/** Builds kerbs flush with the white edge line, using KML only to select where they appear. */
 export function createMonzaKerbs(track: RoadTrack): THREE.Group {
-  const group = new THREE.Group(); group.name = 'Monza red-white-green kerbs';
-  MONZA_KERB_SEGMENTS.forEach((segment,index) => { const mesh = makeSegment(segment,track,index+1); if(mesh) group.add(mesh); });
+  const group = new THREE.Group();
+  group.name = 'Monza red-white-green kerbs';
+  findKerbRuns(track).forEach((run, index) => {
+    const mesh = createRunMesh(track, run, index + 1);
+    if (mesh) group.add(mesh);
+  });
   return group;
 }
