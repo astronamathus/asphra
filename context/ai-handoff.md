@@ -148,3 +148,20 @@ Task: TASK-012 — Racing-line rubber deposits
 Status: Implemented on main; awaiting build and visual check.
 
 Added src/track/rubberDeposits.ts and integrated it in src/main.ts after raceline fitting. Two subtle tyre-width ribbons follow the fitted racing line and are checked against actual road boundaries. Build and browser validation have not been run.
+
+Handoff — 2026-11-15
+Task: TASK-011 — Asphalt material refinement
+Status: Implemented on main; awaiting build and in-game visual verification.
+
+Removed experimental rubber deposits and their main.ts integration. Increased asphalt texture contrast using stronger periodic fine/medium grain, sparse irregular darker particles, occasional lighter flecks and subtle broad-scale tonal variation. Retained 512 × 512 DataTexture, seamless wrapping, current road UV repeat scale and matte material.
+
+Files
+- src/track/asphaltTexture.ts (updated)
+- src/main.ts (rubber integration removed)
+- src/track/rubberDeposits.ts (deleted)
+- context/changelog.md, context/task-queue.md, context/ai-handoff.md (updated)
+
+Testing
+Source-level checks only. No build or browser session available in this workflow.
+Next
+Run npm run build and inspect in-game. If aggregate reads too noisy close-up or still too flat at driving distance, tune contrast and scale before starting runoff geometry.
