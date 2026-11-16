@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { CIRCUIT } from '../config';
 import type { Centerline } from './trackGeometry';
+import { createAsphaltTexture } from './asphaltTexture';
 
 /**
  * Builds one flat strip along the whole closed centerline.
@@ -63,7 +64,8 @@ export function createRoadMeshes(c: Centerline): THREE.Group {
     buildStrip(c, (i) => c.widthLeft[i], (i) => -c.widthRight[i], CIRCUIT.roadY),
     new THREE.MeshStandardMaterial({
       color: CIRCUIT.asphaltColor,
-      roughness: 0.95,
+      map: createAsphaltTexture(),
+      roughness: 0.98,
       polygonOffset: true,
       polygonOffsetFactor: -1,
       polygonOffsetUnits: -1,
