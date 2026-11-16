@@ -766,7 +766,7 @@ import { pointAtDistance } from './trackGeometry';
 
 const KERB_WIDTH = 0.75;
 const STRIPE_LENGTH = 1;
-const EDGE_MATCH_TOLERANCE = 6;
+const EDGE_MATCH_TOLERANCE = 1.75;
 const MAX_TRACE_STEP = 15;
 const COLORS = [0xd71920, 0xf5f5f0, 0x159447];
 
