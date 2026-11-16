@@ -93,3 +93,20 @@ Testing
 
 Known Limitations
 - This pass adds aggregate grain and subtle tonal variation only; rubbered-in racing lines, patch repairs and painted surface details remain future work.
+
+[2026-11-15] — TASK-012 — Racing-line rubber deposits
+
+Developer: ChatGPT
+Branch: main
+
+Added
+- Two subtle tyre-width rubber deposit ribbons following the fitted Monza racing line.
+- Road-boundary checks prevent deposits from extending onto grass.
+- Semi-transparent dark material preserves the underlying asphalt aggregate.
+
+Files
+- src/track/rubberDeposits.ts (created)
+- src/main.ts (integrated after racing-line fitting)
+
+Testing
+- Source integration checked; build and visual validation remain outstanding.
