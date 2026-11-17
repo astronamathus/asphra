@@ -74,9 +74,17 @@ export function createCar(): CarVisual {
     group.add(mesh);
   }
 
-  // ---- Floor and diffuser ----
-  box(1.5, 0.03, 4.5, carbon, 0, 0.09, -0.05);
+  // ---- Floor, stepped side edges and rear diffuser ----
+  box(1.5, 0.045, 4.5, carbon, 0, 0.09, -0.05);
   box(0.95, 0.14, 0.45, carbon, 0, 0.17, -2.3);
+  for (const side of [-1, 1]) {
+    box(0.055, 0.11, 3.55, carbon, side * 0.73, 0.17, -0.12);
+    box(0.12, 0.025, 0.58, white, side * 0.64, 0.13, -1.62);
+  }
+  // Diffuser channels are visible from low chase angles without adding heavy geometry.
+  for (let i = -2; i <= 2; i++) {
+    box(0.018, 0.16, 0.42, carbon, i * 0.16, 0.19, -2.28);
+  }
 
   // ---- Monocoque and engine cover (side view), cockpit opening, airbox ----
   add(
@@ -100,9 +108,13 @@ export function createCar(): CarVisual {
       paint,
     ),
   );
-  box(0.34, 0.08, 0.55, carbon, 0, 0.635, -0.1); // cockpit opening
-  box(0.28, 0.27, 0.5, paint, 0, 0.86, -0.55); // airbox
+  // Recessed cockpit with a raised carbon rim and compact roll-hoop / airbox.
+  box(0.39, 0.055, 0.62, carbon, 0, 0.64, -0.12);
+  box(0.30, 0.025, 0.49, carbon, 0, 0.68, -0.12);
+  box(0.28, 0.27, 0.5, paint, 0, 0.86, -0.55); // engine cover / airbox
   box(0.22, 0.2, 0.06, carbon, 0, 0.88, -0.28); // airbox inlet
+  box(0.09, 0.035, 0.12, carbon, 0, 1.015, -0.55); // T-cam housing
+  box(0.035, 0.025, 0.08, white, 0, 1.038, -0.55); // camera lens housing
 
   // ---- Nose cone ----
   const nose = add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.19, 1.9, 14), paint), 0, 0.27, 1.65);
@@ -112,10 +124,16 @@ export function createCar(): CarVisual {
   noseTip.rotation.x = Math.PI / 2;
   noseTip.scale.set(1, 1, 0.7);
 
-  // ---- Front wing ----
-  box(1.9, 0.03, 0.4, carbon, 0, 0.1, 2.55);
-  box(1.9, 0.025, 0.22, white, 0, 0.15, 2.5);
-  for (const side of [-1, 1]) box(0.03, 0.2, 0.5, white, side * 0.95, 0.17, 2.52);
+  // ---- Multi-element front wing and sculpted endplates ----
+  box(1.92, 0.035, 0.43, carbon, 0, 0.105, 2.53); // mainplane
+  box(1.82, 0.028, 0.30, white, 0, 0.15, 2.48); // leading flap
+  box(1.68, 0.024, 0.22, paint, 0, 0.195, 2.38); // upper flap
+  box(1.48, 0.018, 0.14, carbon, 0, 0.225, 2.29); // flap trailing edge
+  for (const side of [-1, 1]) {
+    box(0.035, 0.24, 0.52, white, side * 0.96, 0.19, 2.51);
+    box(0.025, 0.13, 0.30, carbon, side * 0.90, 0.30, 2.43);
+    box(0.12, 0.055, 0.30, paint, side * 0.72, 0.18, 2.45);
+  }
 
   // ---- Sidepods (top view, mirrored) ----
   const pod: [number, number][] = [
@@ -129,29 +147,46 @@ export function createCar(): CarVisual {
   ];
   add(new THREE.Mesh(topPrism(pod, 0.34, 0.16), paint));
   add(new THREE.Mesh(topPrism(pod.map(([x, z]) => [-x, z] as [number, number]), 0.34, 0.16), paint));
-  for (const side of [-1, 1]) box(0.34, 0.22, 0.04, carbon, side * 0.45, 0.31, 0.5); // sidepod inlets
+  for (const side of [-1, 1]) {
+    box(0.34, 0.22, 0.04, carbon, side * 0.45, 0.31, 0.5); // deep inlet
+    box(0.29, 0.035, 0.035, white, side * 0.45, 0.40, 0.48); // inlet upper lip
+    box(0.34, 0.035, 0.72, carbon, side * 0.49, 0.13, -0.82); // undercut / floor edge
+    box(0.025, 0.018, 0.92, white, side * 0.64, 0.505, -0.68); // sidepod highlight
+  }
 
-  // ---- Rear wing and movable DRS flap ----
-  box(0.95, 0.03, 0.36, carbon, 0, 0.97, -2.5);
-  for (const side of [-1, 1]) box(0.025, 0.4, 0.6, white, side * 0.49, 0.86, -2.52);
-  box(0.05, 0.5, 0.14, carbon, 0, 0.72, -2.35);
-  // The flap pivots along its front edge. DRS flattens its angle to reduce drag.
+  // ---- Rear wing: mainplane, endplates, twin supports and articulated DRS flap ----
+  box(1.02, 0.035, 0.34, carbon, 0, 0.965, -2.51);
+  for (const side of [-1, 1]) {
+    box(0.035, 0.43, 0.58, white, side * 0.50, 0.88, -2.52);
+    box(0.018, 0.23, 0.34, carbon, side * 0.522, 0.91, -2.48);
+    box(0.045, 0.38, 0.11, carbon, side * 0.30, 0.76, -2.38);
+  }
+  box(0.055, 0.48, 0.15, carbon, 0, 0.72, -2.34);
+  // A slim beam-wing element gives the rear assembly depth from chase and T-Cam angles.
+  box(0.82, 0.025, 0.12, white, 0, 0.60, -2.30);
+  // The flap sits close to the mainplane at rest; DRS rotates it flatter.
   const drsFlapPivot = new THREE.Group();
-  drsFlapPivot.position.set(0, 1.045, -2.42);
+  drsFlapPivot.position.set(0, 1.005, -2.39);
   group.add(drsFlapPivot);
-  const drsFlap = new THREE.Mesh(new THREE.BoxGeometry(0.91, 0.025, 0.22), white);
-  drsFlap.position.z = -0.105;
+  const drsFlap = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.026, 0.25), white);
+  drsFlap.position.z = -0.12;
   drsFlap.castShadow = true;
   drsFlapPivot.add(drsFlap);
-  let drsFlapAngle = 0.2;
+  let drsFlapAngle = 0.075;
 
-  // ---- Halo, helmet ----
+  // ---- Halo, driver helmet and cockpit details ----
   for (const side of [-1, 1]) {
-    bar(new THREE.Vector3(side * 0.2, 0.62, -0.35), new THREE.Vector3(side * 0.05, 0.8, 0.42), 0.017);
-    bar(new THREE.Vector3(side * 0.05, 0.8, 0.42), new THREE.Vector3(0, 0.58, 0.55), 0.017);
+    bar(new THREE.Vector3(side * 0.2, 0.62, -0.35), new THREE.Vector3(side * 0.055, 0.82, 0.40), 0.018);
+    bar(new THREE.Vector3(side * 0.055, 0.82, 0.40), new THREE.Vector3(0, 0.60, 0.55), 0.018);
   }
-  bar(new THREE.Vector3(-0.05, 0.8, 0.42), new THREE.Vector3(0.05, 0.8, 0.42), 0.017);
-  add(new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 10), helmetMaterial), 0, 0.7, -0.2);
+  bar(new THREE.Vector3(-0.055, 0.82, 0.40), new THREE.Vector3(0.055, 0.82, 0.40), 0.018);
+  add(new THREE.Mesh(new THREE.SphereGeometry(0.14, 16, 12), helmetMaterial), 0, 0.72, -0.20);
+  const visor = new THREE.Mesh(new THREE.SphereGeometry(0.112, 14, 8, 0, Math.PI * 2, 0.35, 0.8), carbon);
+  visor.scale.set(1, 0.72, 0.48);
+  add(visor, 0, 0.735, -0.095);
+  // Steering wheel is intentionally restrained so it reads in the cockpit without blocking the T-Cam.
+  box(0.23, 0.12, 0.035, carbon, 0, 0.60, 0.17);
+  box(0.15, 0.055, 0.012, white, 0, 0.615, 0.19);
 
   // ---- Wheels and suspension ----
   const frontPivots: THREE.Group[] = [];
@@ -215,7 +250,7 @@ export function createCar(): CarVisual {
       dynamicPitch = damp(dynamicPitch, -clamp(longAccel, -30, 30) * 0.0012, 8, dt);
       dynamicRoll = damp(dynamicRoll, clamp(lateralAccel, -40, 40) * 0.0008, 8, dt);
       for (const spin of spins) spin.group.rotation.x += (state.longSpeed * dt) / spin.radius;
-      drsFlapAngle = damp(drsFlapAngle, drsOpen ? 0.015 : 0.2, 9, dt);
+      drsFlapAngle = damp(drsFlapAngle, drsOpen ? 0.015 : 0.075, 9, dt);
     }
     previousLongSpeed = state.longSpeed;
     drsFlapPivot.rotation.x = drsFlapAngle;
