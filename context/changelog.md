@@ -168,3 +168,27 @@ Known Limitations
 - Geometry is procedural Three.js geometry, not a high-detail imported model.
 - T-Cam composition, camera clipping and exact visible proportions still require in-game inspection and tuning.
 - The DRS flap rest gap and open animation require visual verification from both camera modes.
+
+
+[2026-11-16] — TASK-015 — Low-poly Formula body and articulated DRS airfoil
+
+Developer: ChatGPT
+Branch: main
+
+Added / Changed
+- Replaced the cylindrical nose placeholder with an original faceted tapered nose loft, widening progressively into the monocoque.
+- Rebuilt the rear-wing upper flap as a shaped airfoil profile on a leading-edge hinge.
+- Kept the rear-wing mainplane and endplates fixed while the flap moves independently.
+- Increased the flap travel between closed and DRS-open states and added visible hinge caps.
+- Used the supplied Sketchfab screenshots as general visual references; no third-party model geometry or textures were imported.
+
+Files Modified
+- src/car/createCar.ts
+
+Testing
+- Source updated through GitHub.
+- Build and in-game visual verification have not been run.
+
+Known Limitations
+- The full body still uses procedural Three.js geometry and retains existing wheel, sidepod and cockpit construction; this is an incremental silhouette improvement, not a complete imported-model replacement.
+- Nose proportions, flap pivot direction, endplate clearance and camera presentation require in-game visual inspection.
