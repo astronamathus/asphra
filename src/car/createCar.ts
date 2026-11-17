@@ -208,7 +208,7 @@ export function createCar(): CarVisual {
   // The upper element is a shaped airfoil, not a rectangular block. Its leading
   // edge is the hinge axis; the mainplane and endplates remain fixed.
   const drsFlapPivot = new THREE.Group();
-  drsFlapPivot.position.set(0, 1.005, -2.37);
+  drsFlapPivot.position.set(0, 0.91, -2.48);
   group.add(drsFlapPivot);
   const flapGeometry = sideProfile([
     [0.015, 0.006],
