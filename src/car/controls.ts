@@ -9,6 +9,8 @@ export interface Controls {
   consumeAutoToggle(): boolean;
   /** Returns true once per press of the camera key (C). Does not hand control back from autodrive. */
   consumeCameraToggle(): boolean;
+  /** True while Space is held; DRS remains gated by zone and driving inputs. */
+  isDrsPressed(): boolean;
   /**
    * Returns true once if any key other than the autodrive key was newly pressed since the last
    * call. Used to hand control back to the driver while autodrive is on. Modifier keys, browser
@@ -24,6 +26,7 @@ const GAME_KEYS = new Set([
   'KeyS',
   'KeyD',
   'KeyR',
+  'Space',
   'ArrowUp',
   'ArrowDown',
   'ArrowLeft',
@@ -137,6 +140,9 @@ export function createControls(target: Window = window): Controls {
       const requested = cameraToggleRequested;
       cameraToggleRequested = false;
       return requested;
+    },
+    isDrsPressed(): boolean {
+      return down.has('Space');
     },
     consumeAnyKey(): boolean {
       const pressed = anyKeyPressed;
