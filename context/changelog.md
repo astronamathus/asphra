@@ -192,3 +192,40 @@ Testing
 Known Limitations
 - The full body still uses procedural Three.js geometry and retains existing wheel, sidepod and cockpit construction; this is an incremental silhouette improvement, not a complete imported-model replacement.
 - Nose proportions, flap pivot direction, endplate clearance and camera presentation require in-game visual inspection.
+
+
+[2026-11-17] — TASK-016 — User-supplied low-poly GLB integration preparation
+
+Developer: ChatGPT
+Branch: main
+
+Source Asset
+- User uploaded F1 low poly.glb (ImageToStl.com glTF 2.0 export).
+- Inspected the GLB structure: 17 nodes, 16 mesh references, 33 materials, no animation clips.
+- The steering wheel is included as geometry. The rear wing is static; there is no separate animated DRS node or animation clip.
+
+Asset Preparation
+- Recoloured the original body and livery materials to racing red; darkened grey trim to charcoal.
+- Removed the oversized studio background mesh.
+- Applied a scale/orientation transform to fit the existing game car coordinate system and dimensions.
+- Generated /mnt/data/F1-low-poly-red.glb for the user.
+
+Code Changes
+- Added GLTFLoader integration and a procedural fallback in src/car/createCar.ts.
+- Kept a separate animated DRS flap overlay because the uploaded GLB's rear wing is static.
+- Aligned the DRS overlay approximately to the imported rear wing.
+- Adjusted COCKPIT_CAMERA framing to bring the supplied steering wheel into view.
+
+Files Modified
+- src/car/createCar.ts
+- src/config.ts
+
+Important Deployment Step
+- The generated binary asset has not yet been added to the Git repository. Place it at public/models/F1-low-poly-red.glb for the loader path to resolve. Until then, the existing procedural car remains visible as fallback.
+
+Controls
+- Left Shift remains a toggle for manual DRS. Existing zone, throttle and brake gates remain intact.
+
+Testing
+- GLB parsed and reloaded successfully with transformed bounds approximately 2.0 m wide, 5.6 m long and 1.17 m high.
+- No npm build or in-browser visual test run.
