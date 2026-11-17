@@ -89,7 +89,7 @@ export function createControls(target: Window = window): Controls {
     }
 
     // Any other newly pressed key (not a held-down repeat) hands control back to the driver.
-    if (!event.repeat && !MODIFIER_KEYS.has(event.code) && !DEBUG_KEYS.has(event.code)) {
+    if (!event.repeat && event.code !== 'Space' && !MODIFIER_KEYS.has(event.code) && !DEBUG_KEYS.has(event.code)) {
       anyKeyPressed = true;
     }
 
