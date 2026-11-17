@@ -107,8 +107,8 @@ export const CAMERA: ChaseCameraParams = {
   groundClearance: 0.8,
 };
 
-/** Cockpit view (press C): a camera just above and behind the driver's helmet, looking forward. */
-export const COCKPIT_CAMERA = { x: 0, y: 0.98, z: -0.3, fov: 88 };
+/** T-Cam view (press C): mounted above the roll hoop, just behind the driver. */
+export const COCKPIT_CAMERA = { x: 0, y: 1.055, z: -0.55, fov: 80 };
 
 /**
  * Terrain settings (shared by the Stage 1 test track and the Stage 2 circuit terrain)
