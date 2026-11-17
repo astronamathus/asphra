@@ -165,3 +165,31 @@ Testing
 Source-level checks only. No build or browser session available in this workflow.
 Next
 Run npm run build and inspect in-game. If aggregate reads too noisy close-up or still too flat at driving distance, tune contrast and scale before starting runoff geometry.
+
+
+Handoff — 2026-11-16
+
+Task ID: TASK-013 — Manual DRS and rear-wing animation
+Previous AI: ChatGPT
+Git branch: main
+Task status: Implemented; awaiting build and in-game verification
+
+Work Completed
+- Added held Space input for manual DRS requests.
+- Manual DRS only opens within configured Monza zones, with throttle above 90% and brake below 10%.
+- Autodrive continues to request DRS automatically in those zones.
+- Added a pivoting rear-wing flap that smoothly moves to a low-drag position while DRS is open.
+- HUD now shows DRS readiness in a zone and DRS OPEN while active; controls list explains Space.
+- Space does not cancel autodrive.
+
+Files Modified
+- src/car/controls.ts
+- src/car/createCar.ts
+- src/main.ts
+- src/ui/hud.ts
+- context/task-queue.md
+- context/ai-handoff.md
+- context/changelog.md
+
+Testing
+No local build or browser visual test was run in this workflow. Run npm run build and verify manual activation/release, zone entry/exit, throttle/brake cut-outs, autodrive, and flap animation.
