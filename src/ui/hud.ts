@@ -5,7 +5,7 @@ export interface Hud {
   setAuto(active: boolean): void;
   setGear(gear: number): void;
   /** Shows or hides the "DRS" badge. */
-  setDrs(open: boolean): void;
+  setDrs(open: boolean, available: boolean): void;
   dispose(): void;
 }
 
@@ -31,6 +31,7 @@ export function createHud(container: HTMLElement): Hud {
       <div><kbd>R</kbd> Reset car</div>
       <div><kbd>E</kbd> Autodrive on / off</div>
       <div><kbd>C</kbd> Camera view</div>
+      <div><kbd>SPACE</kbd> Hold DRS in marked zones</div>
     </div>
     <div class="hud-offroad">Off road &mdash; press <kbd>R</kbd> to reset</div>
     <div class="hud-message"></div>
@@ -86,8 +87,10 @@ export function createHud(container: HTMLElement): Hud {
       }, durationMs);
     },
 
-    setDrs(open: boolean): void {
-      drsElement.style.opacity = open ? '1' : '0';
+    setDrs(open: boolean, available: boolean): void {
+      drsElement.style.opacity = available || open ? '1' : '0';
+      drsElement.textContent = open ? 'DRS OPEN' : available ? 'DRS READY · HOLD SPACE' : 'DRS';
+      drsElement.style.background = open ? 'rgba(30,160,90,0.95)' : 'rgba(45,105,155,0.9)';
     },
 
     setGear(gear: number): void {
