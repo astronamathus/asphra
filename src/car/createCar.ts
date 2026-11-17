@@ -7,7 +7,7 @@ const MAX_VISUAL_STEER = 0.4; // radians
 
 export interface CarVisual {
   group: THREE.Group;
-  update(dt: number, state: VehicleState, heightAt: (x: number, z: number) => number): void;
+  update(dt: number, state: VehicleState, heightAt: (x: number, z: number) => number, drsOpen?: boolean): void;
   reset(): void;
 }
 
@@ -131,11 +131,19 @@ export function createCar(): CarVisual {
   add(new THREE.Mesh(topPrism(pod.map(([x, z]) => [-x, z] as [number, number]), 0.34, 0.16), paint));
   for (const side of [-1, 1]) box(0.34, 0.22, 0.04, carbon, side * 0.45, 0.31, 0.5); // sidepod inlets
 
-  // ---- Rear wing ----
+  // ---- Rear wing and movable DRS flap ----
   box(0.95, 0.03, 0.36, carbon, 0, 0.97, -2.5);
-  box(0.95, 0.025, 0.22, white, 0, 1.03, -2.56);
   for (const side of [-1, 1]) box(0.025, 0.4, 0.6, white, side * 0.49, 0.86, -2.52);
   box(0.05, 0.5, 0.14, carbon, 0, 0.72, -2.35);
+  // The flap pivots along its front edge. DRS flattens its angle to reduce drag.
+  const drsFlapPivot = new THREE.Group();
+  drsFlapPivot.position.set(0, 1.045, -2.42);
+  group.add(drsFlapPivot);
+  const drsFlap = new THREE.Mesh(new THREE.BoxGeometry(0.91, 0.025, 0.22), white);
+  drsFlap.position.z = -0.105;
+  drsFlap.castShadow = true;
+  drsFlapPivot.add(drsFlap);
+  let drsFlapAngle = 0.2;
 
   // ---- Halo, helmet ----
   for (const side of [-1, 1]) {
@@ -184,7 +192,7 @@ export function createCar(): CarVisual {
   let dynamicPitch = 0;
   let dynamicRoll = 0;
 
-  function update(dt: number, state: VehicleState, heightAt: (x: number, z: number) => number): void {
+  function update(dt: number, state: VehicleState, heightAt: (x: number, z: number) => number, drsOpen = false): void {
     const sinH = Math.sin(state.heading);
     const cosH = Math.cos(state.heading);
     const wx = CAR_SIZE.wheelX;
@@ -207,8 +215,10 @@ export function createCar(): CarVisual {
       dynamicPitch = damp(dynamicPitch, -clamp(longAccel, -30, 30) * 0.0012, 8, dt);
       dynamicRoll = damp(dynamicRoll, clamp(lateralAccel, -40, 40) * 0.0008, 8, dt);
       for (const spin of spins) spin.group.rotation.x += (state.longSpeed * dt) / spin.radius;
+      drsFlapAngle = damp(drsFlapAngle, drsOpen ? 0.015 : 0.2, 9, dt);
     }
     previousLongSpeed = state.longSpeed;
+    drsFlapPivot.rotation.x = drsFlapAngle;
 
     for (const pivot of frontPivots) pivot.rotation.y = state.steer * MAX_VISUAL_STEER;
 
