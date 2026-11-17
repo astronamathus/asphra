@@ -36,6 +36,9 @@ export function createCameraRig(
   const eye = new THREE.Vector3();
   const carQuaternion = new THREE.Quaternion();
   const flip = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+  // A slight downward pitch keeps the nose and front tyres in view without making the
+  // horizon feel unnaturally low. This is a fixed car-relative camera, not a chase camera.
+  const tCamPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -0.035);
 
   function speedOf(state: VehicleState): number {
     return clamp(Math.hypot(state.vx, state.vz) / params.speedReference, 0, 1);
@@ -65,8 +68,8 @@ export function createCameraRig(
     camera.position.copy(eye);
     // The car faces +z but a camera looks along -z, so turn it half a circle about the vertical.
     car.getWorldQuaternion(carQuaternion);
-    camera.quaternion.copy(carQuaternion).multiply(flip);
-    fov = cockpit.fov + 10 * speedOf(state);
+    camera.quaternion.copy(carQuaternion).multiply(flip).multiply(tCamPitch);
+    fov = cockpit.fov + 5 * speedOf(state);
   }
 
   function applyProjection(): void {
