@@ -100,7 +100,7 @@ export function startGame(container: HTMLElement): () => void {
   function placeCar(x: number, z: number, heading: number, message?: string): void {
     physics.reset(x, z, heading);
     car.reset();
-    car.update(0, physics.state, track.heightAt);
+    car.update(0, physics.state, track.heightAt, false);
     cameraRig.snap(physics.state, car.group);
     if (message) hud.showMessage(message);
   }
@@ -153,9 +153,12 @@ export function startGame(container: HTMLElement): () => void {
 
     const onRoad = track.isOnRoad(state.x, state.z, WORLD.roadEdgeTolerance);
     const input = autoActive && autopilot ? autopilot.compute(state, dt) : controls.read();
-    // DRS opens by itself in the DRS zones while the throttle is (nearly) fully down and the brake is off.
+    // DRS is a held manual request (Space), available only in configured zones.
+    // Autodrive retains its automatic DRS behaviour.
     const lapFraction = track.nearest(state.x, state.z).s / track.lapLength;
-    const drsOpen = inDrsZone(lapFraction) && input.throttle > 0.9 && input.brake < 0.1;
+    const drsAvailable = inDrsZone(lapFraction);
+    const drsRequested = autoActive || controls.isDrsPressed();
+    const drsOpen = drsAvailable && drsRequested && input.throttle > 0.9 && input.brake < 0.1;
     input.drs = drsOpen;
     physics.update(dt, input, onRoad);
 
@@ -163,14 +166,14 @@ export function startGame(container: HTMLElement): () => void {
       recoverToRoad();
     }
 
-    car.update(dt, state, track.heightAt);
+    car.update(dt, state, track.heightAt, drsOpen);
     cameraRig.update(dt, state, car.group);
     ctx.updateEnvironment(car.group.position);
 
     const speed = Math.hypot(state.vx, state.vz);
     hud.update(speed * 3.6, !onRoad);
     hud.setGear(gearbox.update(speed * 3.6));
-    hud.setDrs(drsOpen);
+    hud.setDrs(drsOpen, drsAvailable);
 
     let autoText = '';
     if (autoActive && autopilot) {
