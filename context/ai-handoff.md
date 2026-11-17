@@ -236,3 +236,44 @@ Testing
 Integration Requirements
 - No physics or input changes were made.
 - C remains the camera toggle; Space/DRS behavior is unchanged.
+
+
+Handoff — 2026-11-16
+
+Task ID: TASK-015 — Low-poly Formula body and articulated DRS airfoil
+Previous AI: ChatGPT
+Git branch: main
+Task status: Source implementation committed; awaiting build and in-game verification
+
+Reference
+- User supplied seven screenshots of the Sketchfab model titled “McLaren Formula 1 - Low Poly” by Total Craft.
+- Screenshots show top, front, rear and side/rear three-quarter views.
+- Use only as general visual reference. The user could not download the GLB; no third-party geometry or textures were imported.
+
+Work Completed
+- Added a faceted tapered-body geometry helper and replaced the cylindrical nose with a progressive tapered nose loft.
+- Rebuilt the rear-wing upper flap as a shaped airfoil using the existing side-profile geometry helper.
+- Moved the flap pivot to its leading edge; mainplane and endplates remain fixed.
+- Increased DRS flap travel: closed angle +0.17 rad, open angle -0.24 rad, with smooth damping.
+- Added small hinge caps at both ends.
+
+Files Modified
+- src/car/createCar.ts
+- context/task-queue.md
+- context/changelog.md
+- context/ai-handoff.md
+
+Technical Discoveries
+- Car forward is local +Z; rear wing is at negative Z.
+- The flap airfoil extends rearward from its leading-edge pivot. Positive X rotation raises the trailing edge; negative X rotation lowers it.
+- Existing DRS control conditions and HUD were not modified.
+
+Outstanding Work
+1. Run npm run build.
+2. Inspect the nose and full silhouette from chase and T-Cam views.
+3. Confirm the flap rotates in the intended direction and visibly opens the slot.
+4. Check flap/endplate/hinge clearances throughout animation.
+5. Tune pivot position and angles only after in-game inspection.
+
+Testing
+No local build or browser test was run in this workflow.
