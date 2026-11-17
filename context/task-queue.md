@@ -138,6 +138,16 @@ Investigate multiplayer feasibility.
 
 4. Active Tasks
 
+TASK-014: Formula car visual redesign and T-Cam refinement
+
+Status: Implemented in source — awaiting build and in-game visual verification
+
+Refined the procedural Formula car model with a layered front wing, sidepod inlet/undercut details, floor-edge and diffuser channels, revised rear-wing assembly, cockpit/driver details and a T-Cam housing. The DRS flap now rests much closer to the rear-wing mainplane. Refined the existing C-key cockpit camera into a higher, narrower T-Cam-style perspective with a slight downward pitch and less speed-dependent FOV expansion. Physics, controls, wheel dimensions and camera toggle remain unchanged.
+
+Files: src/car/createCar.ts, src/car/chaseCamera.ts, src/config.ts.
+
+Validation required: npm run build; inspect chase and T-Cam views at low/high speed; check cockpit framing, halo/nose visibility, steering wheel obstruction, camera clipping and DRS flap rest/open transitions.
+
 TASK-013: Manual DRS and rear-wing animation
 
 Status: Implemented — awaiting build and in-game verification
