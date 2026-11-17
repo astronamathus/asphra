@@ -87,6 +87,7 @@ export function startGame(container: HTMLElement): () => void {
     }
   }
   let autoActive = false;
+  let manualDrsEnabled = false;
 
   function setAuto(active: boolean, message?: string): void {
     autoActive = active;
@@ -138,6 +139,10 @@ export function startGame(container: HTMLElement): () => void {
     if (controls.consumeAnyKey() && autoActive) setAuto(false, 'Manual control');
     if (controls.consumeReset()) resetToStart('Car reset');
     if (controls.consumeCameraToggle()) hud.showMessage(`Camera: ${cameraRig.toggle()} view`, 1500);
+    if (controls.consumeDrsToggle()) {
+      manualDrsEnabled = !manualDrsEnabled;
+      hud.showMessage(`Manual DRS ${manualDrsEnabled ? 'armed' : 'disarmed'}`, 1500);
+    }
 
     if (controls.consumeAutoToggle()) {
       if (autoActive) {
@@ -153,11 +158,11 @@ export function startGame(container: HTMLElement): () => void {
 
     const onRoad = track.isOnRoad(state.x, state.z, WORLD.roadEdgeTolerance);
     const input = autoActive && autopilot ? autopilot.compute(state, dt) : controls.read();
-    // DRS is a held manual request (Space), available only in configured zones.
+    // Manual DRS is a Left Shift toggle, gated by the configured zone and driving inputs.
     // Autodrive retains its automatic DRS behaviour.
     const lapFraction = track.nearest(state.x, state.z).s / track.lapLength;
     const drsAvailable = inDrsZone(lapFraction);
-    const drsRequested = autoActive || controls.isDrsPressed();
+    const drsRequested = autoActive || manualDrsEnabled;
     const drsOpen = drsAvailable && drsRequested && input.throttle > 0.9 && input.brake < 0.1;
     input.drs = drsOpen;
     physics.update(dt, input, onRoad);
@@ -173,7 +178,7 @@ export function startGame(container: HTMLElement): () => void {
     const speed = Math.hypot(state.vx, state.vz);
     hud.update(speed * 3.6, !onRoad);
     hud.setGear(gearbox.update(speed * 3.6));
-    hud.setDrs(drsOpen, drsAvailable);
+    hud.setDrs(drsOpen, drsAvailable, drsRequested);
 
     let autoText = '';
     if (autoActive && autopilot) {
