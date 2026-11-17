@@ -127,3 +127,10 @@ Files
 
 Testing
 Source integration verified from GitHub. Build and in-browser visual inspection not performed.
+
+
+2026-11-16 — Manual DRS and animated rear-wing flap
+- Added held Space request for manual DRS, gated by the existing Monza DRS zones and throttle/brake conditions.
+- Preserved automatic DRS while autodrive is active; Space does not hand control back from autodrive.
+- Added smooth rear-wing flap movement and HUD readiness/active states.
+- Build and in-browser visual verification remain outstanding.
