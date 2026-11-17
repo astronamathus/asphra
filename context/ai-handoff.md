@@ -193,3 +193,46 @@ Files Modified
 
 Testing
 No local build or browser visual test was run in this workflow. Run npm run build and verify manual activation/release, zone entry/exit, throttle/brake cut-outs, autodrive, and flap animation.
+
+
+Handoff — 2026-11-16
+
+Task ID: TASK-014 — Formula car visual redesign and T-Cam refinement
+Previous AI: ChatGPT
+Git branch: main
+Task status: Source implementation committed; awaiting build and in-game verification
+
+Work Completed
+- Refined front wing with layered elements and endplates.
+- Added sidepod inlet lips, sidepod/floor edge detail, floor channels and rear diffuser channel detailing.
+- Revised rear wing with endplates, supports, beam-wing detail and a closer-fitting movable DRS flap.
+- Added cockpit rim, driver visor, steering-wheel detail and T-Cam housing.
+- Lowered normal DRS flap angle to 0.075 rad; DRS-open target remains 0.015 rad.
+- Repositioned the C-key camera to a higher/rearward T-Cam-style view, reduced base FOV to 80 degrees, applied subtle downward pitch and reduced speed FOV expansion.
+
+Files Modified
+- src/car/createCar.ts
+- src/car/chaseCamera.ts
+- src/config.ts
+- context/task-queue.md
+- context/changelog.md
+- context/ai-handoff.md
+
+Technical Discoveries
+- The existing C-key view was attached at local position (0, 0.98, -0.3), with an 88-degree FOV and no pitch adjustment. It is a fixed car-relative view, not a true external broadcast camera.
+- The car's forward direction is local +Z; the camera uses a 180-degree local Y rotation to look forward.
+- Existing wheel dimensions and steering pivots are driven by CAR_SIZE and remain unchanged.
+
+Outstanding Work
+1. Run npm run build.
+2. Inspect chase and T-Cam views at low and high speed.
+3. Verify the T-Cam framing keeps the halo and nose visible without excessive obstruction or clipping.
+4. Check DRS flap closed/open transitions from both camera modes.
+5. Tune model proportions/material detail after actual visual review.
+
+Testing
+- Source-level inspection only. No local build or browser session was available; do not report the feature as visually validated.
+
+Integration Requirements
+- No physics or input changes were made.
+- C remains the camera toggle; Space/DRS behavior is unchanged.
