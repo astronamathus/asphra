@@ -108,7 +108,7 @@ export const CAMERA: ChaseCameraParams = {
 };
 
 /** T-Cam view (press C): mounted above the roll hoop, just behind the driver. */
-export const COCKPIT_CAMERA = { x: 0, y: 1.055, z: -0.55, fov: 80 };
+export const COCKPIT_CAMERA = { x: 0, y: 1.02, z: -0.38, fov: 78 };
 
 /**
  * Terrain settings (shared by the Stage 1 test track and the Stage 2 circuit terrain)
