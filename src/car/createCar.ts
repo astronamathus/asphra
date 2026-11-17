@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CAR_SIZE } from '../config';
 import type { VehicleState } from '../types';
 import { clamp, damp } from '../utils/math';
@@ -229,6 +230,33 @@ export function createCar(): CarVisual {
     hinge.position.set(side * 0.465, 0.0, -0.005);
     drsFlapPivot.add(hinge);
   }
+  // Load the user's supplied low-poly Formula car. The public asset is a game-oriented
+  // red/black GLB; keep the procedural DRS flap as a separate animated overlay because
+  // the source GLB is a static mesh export with no articulated DRS node or animation.
+  const drsFlapMaterial = new THREE.MeshStandardMaterial({ color: 0xb90f20, roughness: 0.38, metalness: 0.24 });
+  drsFlap.material = drsFlapMaterial;
+  const modelLoader = new GLTFLoader();
+  modelLoader.load(
+    `${import.meta.env.BASE_URL}models/F1-low-poly-red.glb`,
+    (gltf) => {
+      // Retain only the independently animated flap from the procedural prototype.
+      for (const child of group.children) {
+        if (child !== drsFlapPivot) child.visible = false;
+      }
+      gltf.scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.castShadow = true;
+          object.receiveShadow = true;
+        }
+      });
+      group.add(gltf.scene);
+    },
+    undefined,
+    (error) => {
+      console.warn('[car] Could not load /models/F1-low-poly-red.glb; using procedural fallback.', error);
+    },
+  );
+
   const DRS_CLOSED_ANGLE = 0.17;
   const DRS_OPEN_ANGLE = -0.24;
   let drsFlapAngle = DRS_CLOSED_ANGLE;
