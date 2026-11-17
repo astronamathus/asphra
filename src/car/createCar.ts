@@ -43,6 +43,39 @@ function topPrism(points: [number, number][], height: number, baseY: number): TH
   return geometry;
 }
 
+/** A faceted, tapered monocoque/nose loft. Sections are [z, halfWidth, bottomY, topY]. */
+function taperedBody(sections: [number, number, number, number][]): THREE.BufferGeometry {
+  const ring = (w: number, bottom: number, top: number): [number, number][] => [
+    [-w * 0.62, bottom],
+    [-w, bottom + (top - bottom) * 0.18],
+    [-w, top - (top - bottom) * 0.18],
+    [-w * 0.62, top],
+    [w * 0.62, top],
+    [w, top - (top - bottom) * 0.18],
+    [w, bottom + (top - bottom) * 0.18],
+    [w * 0.62, bottom],
+  ];
+  const vertices: number[] = [];
+  for (const [z, width, bottom, top] of sections) {
+    for (const [x, y] of ring(width, bottom, top)) vertices.push(x, y, z);
+  }
+  const indices: number[] = [];
+  for (let i = 0; i < sections.length - 1; i++) {
+    for (let j = 0; j < 8; j++) {
+      const a = i * 8 + j;
+      const b = i * 8 + (j + 1) % 8;
+      const c = (i + 1) * 8 + (j + 1) % 8;
+      const d = (i + 1) * 8 + j;
+      indices.push(a, b, d, b, c, d);
+    }
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
 export function createCar(): CarVisual {
   const group = new THREE.Group();
   group.rotation.order = 'YXZ';
@@ -116,13 +149,20 @@ export function createCar(): CarVisual {
   box(0.09, 0.035, 0.12, carbon, 0, 1.015, -0.55); // T-cam housing
   box(0.035, 0.025, 0.08, white, 0, 1.038, -0.55); // camera lens housing
 
-  // ---- Nose cone ----
-  const nose = add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.19, 1.9, 14), paint), 0, 0.27, 1.65);
-  nose.rotation.x = Math.PI / 2; // the narrow end points forward
-  nose.scale.set(1, 1, 0.7);
-  const noseTip = add(new THREE.Mesh(new THREE.CylinderGeometry(0.047, 0.07, 0.25, 12), white), 0, 0.27, 2.48);
-  noseTip.rotation.x = Math.PI / 2;
-  noseTip.scale.set(1, 1, 0.7);
+  // ---- Tapered monocoque nose ----
+  // A faceted loft gives the nose a broad shoulder at the chassis and a narrow,
+  // low tip instead of the old cylindrical placeholder.
+  const noseMaterial = paint.clone();
+  noseMaterial.side = THREE.DoubleSide;
+  add(new THREE.Mesh(taperedBody([
+    [2.78, 0.055, 0.205, 0.265],
+    [2.48, 0.085, 0.19, 0.315],
+    [2.12, 0.115, 0.175, 0.365],
+    [1.72, 0.155, 0.16, 0.425],
+    [1.28, 0.205, 0.15, 0.50],
+    [0.78, 0.265, 0.15, 0.585],
+    [0.48, 0.30, 0.15, 0.625],
+  ]), noseMaterial));
 
   // ---- Multi-element front wing and sculpted endplates ----
   box(1.92, 0.035, 0.43, carbon, 0, 0.105, 2.53); // mainplane
@@ -154,7 +194,7 @@ export function createCar(): CarVisual {
     box(0.025, 0.018, 0.92, white, side * 0.64, 0.505, -0.68); // sidepod highlight
   }
 
-  // ---- Rear wing: mainplane, endplates, twin supports and articulated DRS flap ----
+  // ---- Rear wing: fixed mainplane and independently hinged upper DRS flap ----
   box(1.02, 0.035, 0.34, carbon, 0, 0.965, -2.51);
   for (const side of [-1, 1]) {
     box(0.035, 0.43, 0.58, white, side * 0.50, 0.88, -2.52);
@@ -162,17 +202,36 @@ export function createCar(): CarVisual {
     box(0.045, 0.38, 0.11, carbon, side * 0.30, 0.76, -2.38);
   }
   box(0.055, 0.48, 0.15, carbon, 0, 0.72, -2.34);
-  // A slim beam-wing element gives the rear assembly depth from chase and T-Cam angles.
   box(0.82, 0.025, 0.12, white, 0, 0.60, -2.30);
-  // The flap sits close to the mainplane at rest; DRS rotates it flatter.
+
+  // The upper element is a shaped airfoil, not a rectangular block. Its leading
+  // edge is the hinge axis; the mainplane and endplates remain fixed.
   const drsFlapPivot = new THREE.Group();
-  drsFlapPivot.position.set(0, 1.005, -2.39);
+  drsFlapPivot.position.set(0, 1.005, -2.37);
   group.add(drsFlapPivot);
-  const drsFlap = new THREE.Mesh(new THREE.BoxGeometry(0.94, 0.026, 0.25), white);
-  drsFlap.position.z = -0.12;
+  const flapGeometry = sideProfile([
+    [0.015, 0.006],
+    [-0.055, 0.060],
+    [-0.19, 0.078],
+    [-0.31, 0.052],
+    [-0.35, 0.020],
+    [-0.29, -0.002],
+    [-0.08, -0.012],
+  ], 0.94, 0.006);
+  const drsFlap = new THREE.Mesh(flapGeometry, white);
   drsFlap.castShadow = true;
   drsFlapPivot.add(drsFlap);
-  let drsFlapAngle = 0.075;
+
+  // Small hinge caps at the ends make the flap's rotation legible in close views.
+  for (const side of [-1, 1]) {
+    const hinge = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.055, 8), rimMaterial);
+    hinge.rotation.z = Math.PI / 2;
+    hinge.position.set(side * 0.465, 0.0, -0.005);
+    drsFlapPivot.add(hinge);
+  }
+  const DRS_CLOSED_ANGLE = 0.17;
+  const DRS_OPEN_ANGLE = -0.24;
+  let drsFlapAngle = DRS_CLOSED_ANGLE;
 
   // ---- Halo, driver helmet and cockpit details ----
   for (const side of [-1, 1]) {
@@ -250,7 +309,7 @@ export function createCar(): CarVisual {
       dynamicPitch = damp(dynamicPitch, -clamp(longAccel, -30, 30) * 0.0012, 8, dt);
       dynamicRoll = damp(dynamicRoll, clamp(lateralAccel, -40, 40) * 0.0008, 8, dt);
       for (const spin of spins) spin.group.rotation.x += (state.longSpeed * dt) / spin.radius;
-      drsFlapAngle = damp(drsFlapAngle, drsOpen ? 0.015 : 0.075, 9, dt);
+      drsFlapAngle = damp(drsFlapAngle, drsOpen ? DRS_OPEN_ANGLE : DRS_CLOSED_ANGLE, 8, dt);
     }
     previousLongSpeed = state.longSpeed;
     drsFlapPivot.rotation.x = drsFlapAngle;
