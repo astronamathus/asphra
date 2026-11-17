@@ -138,6 +138,19 @@ Investigate multiplayer feasibility.
 
 4. Active Tasks
 
+TASK-015: Cohesive low-poly Formula car body and articulated DRS airfoil
+
+Status: Implemented in source — awaiting build and in-game visual verification
+
+Used the supplied top, front, rear and side screenshots as visual references for an original low-poly Formula car. Replaced the cylindrical nose placeholder with a faceted tapered monocoque nose loft. Rebuilt the upper rear-wing flap as a shaped airfoil mesh on a leading-edge hinge; the mainplane and endplates remain fixed. Increased the closed/open flap travel to make the DRS state visibly distinct and added hinge caps.
+
+The reference screenshots are used for general proportions and design language only; no Sketchfab model files or textures were copied.
+
+Files: src/car/createCar.ts.
+
+Validation required: npm run build; inspect nose/body silhouette from chase and T-Cam views; verify the flap's closed alignment, open slot/gap and rotation direction in both views; confirm the flap clears endplates and supports.
+
+
 TASK-014: Formula car visual redesign and T-Cam refinement
 
 Status: Implemented in source — awaiting build and in-game visual verification
