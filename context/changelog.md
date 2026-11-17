@@ -134,3 +134,37 @@ Source integration verified from GitHub. Build and in-browser visual inspection 
 - Preserved automatic DRS while autodrive is active; Space does not hand control back from autodrive.
 - Added smooth rear-wing flap movement and HUD readiness/active states.
 - Build and in-browser visual verification remain outstanding.
+
+
+[2026-11-16] — TASK-014 — Formula car visual redesign and T-Cam refinement
+
+Developer: ChatGPT
+Branch: main
+
+Added / Changed
+- Refined the car's layered front wing and endplates, sidepod inlet lips and floor-edge details.
+- Added visible floor and diffuser channel detailing, plus a more layered rear-wing assembly.
+- Improved cockpit presentation with a recessed rim, driver visor, steering wheel detail and a small T-Cam housing.
+- Reduced the default DRS flap angle from 0.2 rad to 0.075 rad so it sits much closer to the rear-wing mainplane at rest; the open target remains 0.015 rad.
+- Repositioned the C-key cockpit view to a higher, rearward T-Cam-like mount, narrowed its base FOV from 88 to 80 degrees and added a subtle downward pitch. Speed-related FOV expansion is reduced.
+
+Technical Details
+- Existing car dimensions, wheel setup, steering animation, physics interface and camera toggle contract are preserved.
+- The camera remains fixed relative to the car and follows its orientation; it is not a separately implemented broadcast camera.
+
+Files Modified
+- src/car/createCar.ts
+- src/car/chaseCamera.ts
+- src/config.ts
+- context/task-queue.md
+- context/changelog.md
+- context/ai-handoff.md
+
+Testing
+- Source-level inspection and targeted replacement checks completed.
+- npm run build and in-browser visual checks were not available in this workflow.
+
+Known Limitations
+- Geometry is procedural Three.js geometry, not a high-detail imported model.
+- T-Cam composition, camera clipping and exact visible proportions still require in-game inspection and tuning.
+- The DRS flap rest gap and open animation require visual verification from both camera modes.
