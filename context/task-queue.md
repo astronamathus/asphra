@@ -138,6 +138,16 @@ Investigate multiplayer feasibility.
 
 4. Active Tasks
 
+TASK-013: Manual DRS and rear-wing animation
+
+Status: Implemented — awaiting build and in-game verification
+
+Manual DRS is requested by holding Space and is available only inside configured DRS zones while accelerating without braking. Autodrive retains automatic DRS. The rear-wing flap animates between its normal and low-drag positions; the HUD indicates zone availability and activation.
+
+Files: src/car/controls.ts, src/car/createCar.ts, src/main.ts, src/ui/hud.ts.
+
+Validation required: npm run build; verify Space activation/release, zone boundaries, braking/throttle cut-outs, autodrive behavior, and flap motion in browser.
+
 TASK-011: Procedural asphalt surface
 
 Status: Refined — awaiting build and browser verification
